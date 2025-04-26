@@ -1,17 +1,24 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
-    <main className="flex h-screen items-center justify-center bg-gray-100 p-5 sm:bg-red-50 md:bg-green-100 lg:bg-cyan-200 xl:bg-orange-200 2xl:bg-purple-200">
-      <div className="group flex w-full max-w-[640px] flex-col gap-3 rounded-3xl bg-white p-5 shadow-lg">
-        <input
-          type="text"
-          className="w-full bg-gray-100"
-          placeholder="Write your Email"
-        />
-        <span className="hidden group-focus-within:block">
-          Make sure it is a valid email...
-        </span>
-        <button className="bg-mint-500">Submit</button>
+    <div className="flex min-h-screen flex-col items-center justify-center p-6">
+      <div className="my-auto flex flex-col items-center gap-2 *:font-medium">
+        <span className="text-9xl">🥕</span>
+        <h1 className="text-4xl">Carrot</h1>
+        <h2 className="text-2xl">Welcome to Carrot Market!</h2>
       </div>
-    </main>
+      <div className="flex w-full flex-col items-center gap-3">
+        <Link href="/create-account" className="primary-btn py-2.5 text-lg">
+          Start
+        </Link>
+        <div className="flex gap-2">
+          <span>Already have an account?</span>
+          <Link href="/login" className="hover:underline">
+            Log in
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }
