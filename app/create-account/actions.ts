@@ -23,7 +23,7 @@ const formSchema = z
         required_error: "Where is Username?",
       })
       .min(3, "Way too short!!!")
-      // .max(10, "That is too looong!!!")
+      .max(10, "That is too looong!!!")
       .trim()
       .refine(checkUsername, "No potato!!"),
     email: z.string().email().toLowerCase(),
