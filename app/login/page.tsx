@@ -4,7 +4,8 @@ import SocialLogin from "@/components/social-login";
 
 export default function LogIn() {
   const handleForm = async (formData: FormData) => {
-    "use server"
+    "use server";
+    await new Promise((resolve) => setTimeout(resolve, 3000));
     console.log(formData.get("email"), formData.get("password"));
     console.log("I run in the server!");
   };
@@ -29,7 +30,7 @@ export default function LogIn() {
           required
           errors={[]}
         />
-        <FormButton loading={false} text="Log In" />
+        <FormButton text="Log In" />
       </form>
       <SocialLogin />
     </div>
