@@ -1,6 +1,10 @@
 "use server";
 import { z } from "zod";
 
+const passwordRegex = new RegExp(
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*?[#?!@$%^&*-]).+$/,
+);
+
 const checkUsername = (username: string) => !username.includes("potato");
 
 const checkPasswords = ({
@@ -19,11 +23,18 @@ const formSchema = z
         required_error: "Where is Username?",
       })
       .min(3, "Way too short!!!")
-      .max(10, "That is too looong!!!")
+      // .max(10, "That is too looong!!!")
+      .trim()
       .refine(checkUsername, "No potato!!"),
-    email: z.string().email(),
-    password: z.string().min(10),
-    confirmPassword: z.string().min(10),
+    email: z.string().email().toLowerCase(),
+    password: z
+      .string()
+      .min(4)
+      .regex(
+        passwordRegex,
+        "A password must have lowercase, UPPERCASE, a number, and special characters.",
+      ),
+    confirmPassword: z.string().min(4),
   })
   .refine(checkPasswords, {
     message: "Both passwords should be the same!",
@@ -41,5 +52,7 @@ export async function createAccount(prevState: any, formData: FormData) {
   if (!result.success) {
     console.log(result.error.flatten());
     return result.error.flatten();
+  } else {
+    console.log(result.data);
   }
 }
