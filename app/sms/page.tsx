@@ -17,15 +17,19 @@ export default function SMSLogIn() {
       <form action={formAction} className="flex flex-col gap-5">
         <Input
           name="phoneNumber"
-          type="number"
+          type="text"
           placeholder="Phone Number"
           required
+          key="phoneNumber"
         />
         <Input
           name="token"
           type="number"
           placeholder="Verification Code"
           required
+          min={100000}
+          max={999999}
+          key="token"
         />
         <Button text="Verify" />
       </form>
