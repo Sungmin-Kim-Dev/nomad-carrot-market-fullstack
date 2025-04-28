@@ -13,21 +13,21 @@ const db = new PrismaClient();
 // }
 
 // test();
-async function test() {
-  const token = await db.sMSToken.create({
-    data: {
-      token: "1212212",
-      user: {
-        connect: {
-          id: 2,
-        },
-      },
-    },
-  });
+// async function test() {
+//   const token = await db.sMSToken.create({
+//     data: {
+//       token: "1212212",
+//       user: {
+//         connect: {
+//           id: 2,
+//         },
+//       },
+//     },
+//   });
 
-  console.log(token);
-}
+//   console.log(token);
+// }
 
-test();
+// test();
 
 export default db;
