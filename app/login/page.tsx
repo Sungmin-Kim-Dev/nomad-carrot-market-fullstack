@@ -17,7 +17,6 @@ export default function LogIn() {
       <form action={formAction} className="flex flex-col gap-5">
         <Input
           name="email"
-          key="email"
           type="email"
           placeholder="Email"
           required
@@ -25,7 +24,6 @@ export default function LogIn() {
         />
         <Input
           name="password"
-          key="password"
           type="password"
           placeholder="Password"
           required

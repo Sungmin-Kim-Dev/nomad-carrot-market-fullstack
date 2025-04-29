@@ -4,6 +4,7 @@ import {
   PASSWORD_REGEX,
   PASSWORD_REGEX_ERROR,
 } from "@/lib/constants";
+import db from "@/lib/db";
 import { z } from "zod";
 
 const checkUsername = (username: string) => !username.includes("potato");
@@ -16,6 +17,34 @@ const checkPasswords = ({
   confirmPassword: string;
 }) => password === confirmPassword;
 
+const checkUniqueUsername = async (username: string) => {
+  const user = await db.user.findUnique({
+    where: {
+      username,
+    },
+    select: {
+      id: true,
+    },
+  });
+  // if (user) {
+  //   return false;
+  // } else {
+  //   return true;
+  // }
+  return !Boolean(user);
+};
+const checkUniqueEmail = async (email: string) => {
+  const user = await db.user.findUnique({
+    where: {
+      email,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return !Boolean(user);
+};
+
 const formSchema = z
   .object({
     username: z
@@ -23,13 +52,20 @@ const formSchema = z
         invalid_type_error: "Username must be a string.",
         required_error: "Where is Username?",
       })
+      .toLowerCase()
       .trim()
-      .refine(checkUsername, "No potato!!"),
-    email: z.string().email().toLowerCase(),
-    password: z
+      .refine(checkUsername, "No potato!!")
+      .refine(checkUniqueUsername, "This Username is already taken."),
+    email: z
       .string()
-      .min(PASSWORD_MIN_LENGTH)
-      .regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
+      .email()
+      .toLowerCase()
+      .refine(
+        checkUniqueEmail,
+        "There is an account already registered with that email.",
+      ),
+    password: z.string().min(PASSWORD_MIN_LENGTH),
+    // .regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
     confirmPassword: z.string().min(PASSWORD_MIN_LENGTH),
   })
   .refine(checkPasswords, {
@@ -44,11 +80,17 @@ export async function createAccount(prevState: any, formData: FormData) {
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
   };
-  const result = formSchema.safeParse(data);
+  const result = await formSchema.safeParseAsync(data);
   if (!result.success) {
-    console.log(result.error.flatten());
+    // console.log(result.error.flatten());
     return result.error.flatten();
   } else {
-    console.log(result.data);
+    // console.log(result.data);
+    // check if username is taken
+    // check if the mail is already used
+    // hash password
+    // save the user to db
+    // log the user in
+    // redirect to "/home"
   }
 }

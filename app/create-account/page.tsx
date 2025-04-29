@@ -18,7 +18,6 @@ export default function CreateAccount() {
       <form action={formAction} className="flex flex-col gap-5">
         <Input
           name="username"
-          key="username"
           type="text"
           placeholder="Username"
           required
@@ -28,7 +27,6 @@ export default function CreateAccount() {
         />
         <Input
           name="email"
-          key="email"
           type="email"
           placeholder="Email"
           required
@@ -36,7 +34,6 @@ export default function CreateAccount() {
         />
         <Input
           name="password"
-          key="password"
           type="password"
           placeholder="Password"
           required
@@ -45,7 +42,6 @@ export default function CreateAccount() {
         />
         <Input
           name="confirmPassword"
-          key="confirmPassword"
           type="password"
           placeholder="Confirm Password"
           required
