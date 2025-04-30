@@ -1,12 +1,13 @@
 import { cookies } from "next/headers";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import getSession from "./lib/session";
 
 export async function middleware(request: NextRequest) {
-  const session = await getSession();
-  console.log(session);
-
-  if (request.nextUrl.pathname === "/profile") {
-    return Response.redirect(new URL("/", request.url));
-  }
+  const pathname = request.nextUrl.pathname;
+  console.log("Hello!");
 }
+
+export const config = {
+  matcher: ["/", "/profile", "/create-account", "/user:path*"],
+  
+};
