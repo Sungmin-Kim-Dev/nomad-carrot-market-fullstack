@@ -5,7 +5,7 @@ interface Routes {
   [key: string]: boolean;
 }
 
-// 오브젝트가 어레이보다 값을 찾기가 빠름. 
+// 오브젝트가 어레이보다 값을 찾기가 빠름.
 // array는 값을 찾으려면 하나씩 다 비교해야 함
 const publicOnlyUrls: Routes = {
   "/": true,
@@ -29,5 +29,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
