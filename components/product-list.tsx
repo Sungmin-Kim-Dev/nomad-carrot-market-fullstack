@@ -12,10 +12,17 @@ interface ProductListProps {
 export default function ProductList({ initialProducts }: ProductListProps) {
   const [products, setProducts] = useState(initialProducts);
   const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [isLastPage, setIsLastPage] = useState(false);
   const loadMoreItems = async () => {
     setIsLoading(true);
-    const newProducts = await getMoreProducts(1);
-    setProducts((prev) => [...prev, ...newProducts]);
+    const newProducts = await getMoreProducts(page + 1);
+    if (newProducts.length !== 0) {
+      setPage((prev) => prev + 1);
+      setProducts((prev) => [...prev, ...newProducts]);
+    } else {
+      setIsLastPage(true);
+    }
     setIsLoading(false);
   };
   return (
@@ -23,13 +30,15 @@ export default function ProductList({ initialProducts }: ProductListProps) {
       {products.map((product) => (
         <ListProduct {...product} key={product.id} />
       ))}
-      <button
-        onClick={loadMoreItems}
-        disabled={isLoading}
-        className="mx-auto w-fit rounded-md bg-orange-500 px-3 py-2 text-sm font-semibold hover:opacity-90 active:scale-95"
-      >
-        {isLoading ? "Loading..." : "Load more"}
-      </button>
+      {!isLastPage && (
+        <button
+          onClick={loadMoreItems}
+          disabled={isLoading}
+          className="mx-auto w-fit rounded-md bg-orange-500 px-3 py-2 text-sm font-semibold hover:opacity-90 active:scale-95"
+        >
+          {isLoading ? "Loading..." : "Load more"}
+        </button>
+      )}
     </div>
   );
 }
