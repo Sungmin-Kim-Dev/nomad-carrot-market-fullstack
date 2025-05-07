@@ -37,7 +37,7 @@ export default async function ProductDetails({
 }: {
   params: { id: string };
 }) {
-  const id = Number(params.id);
+  const id = Number((await params).id);
   if (isNaN(id)) {
     return notFound();
   }
@@ -45,7 +45,6 @@ export default async function ProductDetails({
   if (!product) {
     return notFound();
   }
-  console.log(product);
   const isOwner = await getIsOwner(product.userId);
 
   const deleteProduct = async () => {
@@ -61,7 +60,12 @@ export default async function ProductDetails({
   return (
     <div className="relative">
       <div className="relative aspect-square">
-        <Image fill src={product.photo} alt={product.title} className="object-cover" />
+        <Image
+          fill
+          src={product.photo}
+          alt={product.title}
+          className="object-cover"
+        />
       </div>
       <div className="flex items-center gap-3 border-b border-neutral-700 p-5">
         <div className="size-10 overflow-hidden rounded-full">
