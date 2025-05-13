@@ -1,4 +1,6 @@
-import { notFound } from "next/navigation";
+import db from "@/lib/db";
+import getSession from "@/lib/session";
+import { notFound, redirect } from "next/navigation";
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -18,11 +20,44 @@ export async function GET(request: NextRequest) {
       Accept: "application/json",
     },
   });
-  const accessTokenData = await accessTokenResponse.json();
-  if ("error" in accessTokenData) {
+  const { error, access_token } = await accessTokenResponse.json();
+  if (error) {
     return new Response(null, {
       status: 400,
     });
   }
-  return Response.json({ accessTokenData });
+  const userProfileResponse = await fetch("https://api.github.com/user", {
+    headers: {
+      Authorization: `Bearer ${access_token}`,
+    },
+  });
+  const userProfileData = await userProfileResponse.json();
+  const user = await db.user.findUnique({
+    where: {
+      github_id: userProfileData.id.toString(),
+    },
+    select: {
+      id: true,
+    },
+  });
+  if (user) {
+    const session = await getSession();
+    session.id = user.id;
+    await session.save();
+    return redirect("/profile");
+  }
+  const newUser = await db.user.create({
+    data: {
+      username: userProfileData.login,
+      github_id: userProfileData.id.toString(),
+      avatar: userProfileData.avatar_url,
+    },
+    select: {
+      id: true,
+    },
+  });
+  const session = await getSession();
+  session.id = newUser.id;
+  await session.save();
+  return redirect("/profile");
 }
