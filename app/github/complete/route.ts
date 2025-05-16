@@ -1,4 +1,9 @@
 import db from "@/lib/db";
+import {
+  getGitHubAccessToken,
+  getGithubEmails,
+  getGithubProfile,
+} from "@/lib/githubAuth";
 import { logInCookie } from "@/lib/login";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
@@ -10,48 +15,18 @@ export async function GET(request: NextRequest) {
       status: 400,
     });
   }
-  const accessTokenParams = new URLSearchParams({
-    client_id: process.env.GITHUB_CLIENT_ID!,
-    client_secret: process.env.GITHUB_CLIENT_SECRET!,
-    code: code,
-  }).toString();
-  const accessTokenURL = `https://github.com/login/oauth/access_token?${accessTokenParams}`;
-  const accessTokenResponse = await fetch(accessTokenURL, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-    },
-  });
-  const { error, access_token } = await accessTokenResponse.json();
+  const { error, access_token } = await getGitHubAccessToken(code);
   if (error) {
     return new Response(null, {
       status: 400,
     });
   }
-  const userProfileResponse = await fetch("https://api.github.com/user", {
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-  });
-  const userProfileData = await userProfileResponse.json();
-  if (!userProfileResponse.ok || !userProfileData?.id) {
-    return new Response("Failed to fetch GitHub user profile.", {
-      status: 400,
-    });
-  }
 
-  const userEmailResponse = await fetch("https://api.github.com/user/emails", {
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-  });
-  const userEmailDataArray = await userEmailResponse.json();
+  const { id, login, avatar_url } = await getGithubProfile(access_token);
+  const userEmailDataArray = await getGithubEmails(access_token);
 
-  const generateUsername = async (userProfileData: {
-    login: string;
-    id: number;
-  }) => {
-    const baseUsername = userProfileData.login;
+  const generateUsername = async (login: string, id: number) => {
+    const baseUsername = login;
 
     const existingUserWithThisUsername = await db.user.findUnique({
       where: {
@@ -63,16 +38,9 @@ export async function GET(request: NextRequest) {
     });
 
     return existingUserWithThisUsername
-      ? `${userProfileData.login}_gh_${userProfileData.id.toString().slice(0, 5)}`
+      ? `${login}_gh_${id.toString().slice(0, 5)}`
       : baseUsername;
   };
-
-  if (!userEmailResponse.ok || !Array.isArray(userEmailDataArray)) {
-    console.error("Failed to fetch GitHub user emails:", userEmailDataArray);
-    return new Response("Failed to fetch GitHub user emails.", {
-      status: 400,
-    });
-  }
 
   let primaryEmailObject = userEmailDataArray.find(
     (emailObj: any) => emailObj.primary && emailObj.verified,
@@ -98,7 +66,7 @@ export async function GET(request: NextRequest) {
   const githubEmail = primaryEmailObject.email;
   const existingUserByGithubId = await db.user.findUnique({
     where: {
-      github_id: userProfileData.id.toString(),
+      github_id: id.toString(),
     },
     select: {
       id: true,
@@ -122,7 +90,7 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const usernameForDb = await generateUsername(userProfileData);
+  const usernameForDb = await generateUsername(login, id);
 
   if (existingUserByEmail) {
     const updatePayload: {
@@ -130,14 +98,14 @@ export async function GET(request: NextRequest) {
       username?: string;
       avatar?: string;
     } = {
-      github_id: userProfileData.id.toString(),
+      github_id: id.toString(),
     };
 
     if (!existingUserByEmail.username) {
       updatePayload.username = usernameForDb;
     }
-    if (!existingUserByEmail.avatar && userProfileData.avatar_url) {
-      updatePayload.avatar = userProfileData.avatar_url;
+    if (!existingUserByEmail.avatar && avatar_url) {
+      updatePayload.avatar = avatar_url;
     }
 
     await db.user.update({
@@ -152,8 +120,8 @@ export async function GET(request: NextRequest) {
     data: {
       username: usernameForDb,
       email: githubEmail,
-      github_id: userProfileData.id.toString(),
-      avatar: userProfileData.avatar_url,
+      github_id: id.toString(),
+      avatar: avatar_url,
     },
     select: {
       id: true,
