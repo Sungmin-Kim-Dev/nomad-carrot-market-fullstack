@@ -78,55 +78,47 @@ export async function GET(request: NextRequest) {
     return redirect("/profile");
   }
 
-  const existingUserByEmail = await db.user.findUnique({
-    where: {
-      email: githubEmail,
-    },
-    select: {
-      id: true,
-      github_id: true,
-      username: true,
-      avatar: true,
-    },
-  });
-
   const usernameForDb = await generateUsername(login, id);
 
-  if (existingUserByEmail) {
-    const updatePayload: {
-      github_id: string;
-      username?: string;
-      avatar?: string;
-    } = {
-      github_id: id.toString(),
-    };
+  // GitHub ID로 사용자를 찾지 못한 경우, 이메일을 기준으로 사용자를 찾거나 새로 생성합니다.
+  // 먼저 사용자가 있는지 조회
+  const existingUser = await db.user.findUnique({
+    where: { email: githubEmail },
+    select: { id: true, username: true, avatar: true },
+  });
 
-    if (!existingUserByEmail.username) {
-      updatePayload.username = usernameForDb;
-    }
-    if (!existingUserByEmail.avatar && avatar_url) {
-      updatePayload.avatar = avatar_url;
-    }
+  let user;
 
-    await db.user.update({
-      where: { id: existingUserByEmail.id },
-      data: updatePayload,
+  if (existingUser) {
+    // 기존 사용자가 있는 경우
+    user = await db.user.update({
+      where: { id: existingUser.id },
+      data: {
+        github_id: id.toString(),
+        // 기존 username이 있으면 유지, 없으면 GitHub username 사용
+        ...(existingUser.username ? {} : { username: usernameForDb }),
+        // 기존 avatar가 있으면 유지, 없으면 GitHub avatar 사용 (avatar_url이 있을 경우에만)
+        ...(!existingUser.avatar && avatar_url ? { avatar: avatar_url } : {}),
+      },
+      select: {
+        id: true,
+      },
     });
-    await logInCookie(existingUserByEmail.id);
-    return redirect("/profile");
+  } else {
+    // 새 사용자 생성
+    user = await db.user.create({
+      data: {
+        username: usernameForDb,
+        email: githubEmail,
+        github_id: id.toString(),
+        avatar: avatar_url,
+      },
+      select: {
+        id: true,
+      },
+    });
   }
 
-  const newUser = await db.user.create({
-    data: {
-      username: usernameForDb,
-      email: githubEmail,
-      github_id: id.toString(),
-      avatar: avatar_url,
-    },
-    select: {
-      id: true,
-    },
-  });
-  await logInCookie(newUser.id);
+  await logInCookie(user.id);
   return redirect("/profile");
 }
