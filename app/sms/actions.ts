@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import db from "@/lib/db";
 import crypto from "crypto";
 import getSession from "@/lib/session";
+import twilio from "twilio";
 
 const phoneSchema = z
   .string()
@@ -93,7 +94,17 @@ export async function smsLogIn(prevState: ActionState, formData: FormData) {
           },
         },
       });
-      // send the token using twillio
+      // send the token using twilio
+      // const client = twilio(
+      //   process.env.TWILIO_ACCOUNT_SID,
+      //   process.env.TWILIO_AUTH_TOKEN,
+      // );
+      // await client.messages.create({
+      //   body: `Your Karrot verification is: ${token}`,
+      //   from: process.env.TWILIO_PHONE_NUMBER!,
+      //   // 원래는 to: result.data (사용자가 입력한 값)
+      //   to: process.env.MY_PHONE_NUMBER!,
+      // });
       return {
         token: true,
       };
