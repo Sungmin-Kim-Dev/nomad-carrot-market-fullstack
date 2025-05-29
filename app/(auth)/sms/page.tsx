@@ -12,7 +12,6 @@ const initialState = {
 
 export default function SMSLogIn() {
   const [state, formAction] = useActionState(smsLogIn, initialState);
-
   return (
     <div className="flex flex-col gap-10 px-6 py-8">
       <div className="flex flex-col gap-2 *:font-medium">
@@ -28,6 +27,7 @@ export default function SMSLogIn() {
             required
             min={100000}
             max={999999}
+            errors={state.error?.formErrors}
           />
         ) : (
           <Input
