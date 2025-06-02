@@ -4,7 +4,7 @@ import Button from "@/components/button";
 import Input from "@/components/input";
 import { PhotoIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useActionState, useState } from "react";
 import { uploadProduct } from "./actions";
 
 export default function AddProduct() {
@@ -32,9 +32,10 @@ export default function AddProduct() {
     const url = URL.createObjectURL(file);
     setPreview(url);
   };
+  const [state, action] = useActionState(uploadProduct, null);
   return (
     <div>
-      <form action={uploadProduct} className="flex flex-col gap-5 p-5">
+      <form action={action} className="flex flex-col gap-5 p-5">
         <label
           htmlFor="photo"
           className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-neutral-300 bg-cover bg-center text-neutral-300"
@@ -48,6 +49,9 @@ export default function AddProduct() {
               <div className="text-sm text-neutral-400">
                 Please upload photos here.
               </div>
+              {state?.fieldErrors.photo && (
+                <p className="text-red-500">{state.fieldErrors.photo}</p>
+              )}
             </>
           )}
         </label>
@@ -58,13 +62,26 @@ export default function AddProduct() {
           name="photo"
           className="hidden"
         />
-        <Input name="title" required placeholder="Title" type="text" />
-        <Input name="price" required placeholder="Price" type="number" />
+        <Input
+          name="title"
+          required
+          placeholder="Title"
+          type="text"
+          errors={state?.fieldErrors.title}
+        />
+        <Input
+          name="price"
+          required
+          placeholder="Price"
+          type="number"
+          errors={state?.fieldErrors.price}
+        />
         <Input
           name="description"
           required
           placeholder="Product description"
           type="text"
+          errors={state?.fieldErrors.description}
         />
         <Button text="Submit" />
       </form>
